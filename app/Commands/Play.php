@@ -5,10 +5,8 @@ namespace App\Commands;
 use App\Api;
 use App\Filler\Enums\Player;
 use App\Filler\Models\Game;
-use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use LaravelZero\Framework\Commands\Command;
-use Symfony\Component\Console\Input\InputOption;
 
 class Play extends Command
 {
@@ -23,7 +21,7 @@ class Play extends Command
      *
      * @var string
      */
-    protected $name = 'play';
+    protected $signature = 'play {--gameServer=} {--gameId=} {--playerId=}';
 
     /**
      * The description of the command.
@@ -39,12 +37,25 @@ class Play extends Command
      */
     public function handle()
     {
-        $api = app(Api::class);
+        if (blank($gameServer = $this->option('gameServer'))) {
+            return static::ERROR;
+        }
 
-        $gameId = '617b9b22e9df051bb57d2ee7';
-        $gameId = '617bb538e9df051bb57d2eed';
+        if (blank($gameId = $this->option('gameId'))) {
+            return static::ERROR;
+        }
+
+        if (blank($playerId = $this->option('playerId'))) {
+            return static::ERROR;
+        }
+
+        $api = app(Api::class, ['baseUrl' => Str::finish($gameServer, '/')]);
 
         $data = $api->getState($gameId);
+
+        if (blank($data)) {
+            return static::ERROR;
+        }
 
         $game = Game::import($data);
 
@@ -54,23 +65,11 @@ class Play extends Command
             case $game->isWinner(Player::Second()):
                 return static::EXIT_PLAYER_2_WINNER;
             default:
-                // dump($game->getCurrentPlayer());
+                $player = Player::fromValue((int) $playerId);
 
-                // dump($game->getField()->getAvaibleColors(Player::First()));
-                // dump($game->getAvaibleColors(Player::Second()));
-                // dump();
-                $player = $game->getCurrentPlayer();
+                $color = $game->getBestColor($player);
 
-                $colors = $game->getAvaibleColors($player);
-
-                // $color = collect($colors)->dump()->sortByDesc(fn ($color) => $color->getCount())->dump()->first();
-
-                // dd($color);
-                $color = collect($colors)->sortByDesc(fn ($color) => $color->getCount())->first();
-
-                dump($colors);
-                dump($color);
-                dump($player);
+                $this->info("step: {$player->value} {$color->key} ");
 
                 $api->makeStep($gameId, $player->value, $color);
 

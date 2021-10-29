@@ -11,10 +11,14 @@ class Cell
     protected $x = 0;
     protected $y = 0;
 
+    protected $id;
+    protected static $instanceCounter = 0;
+
     public function __construct(
         protected Enums\Player $player,
         protected Enums\Color $color,
     ) {
+        $this->id = static::$instanceCounter++;
     }
 
     public static function import(array $import): self
@@ -23,6 +27,11 @@ class Cell
             Enums\Player::fromValue($import['playerId']),
             Enums\Color::fromValue($import['color']),
         );
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
     }
 
     public function setField(?Field $field = null): self

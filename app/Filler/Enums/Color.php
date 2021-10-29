@@ -30,24 +30,4 @@ class Color extends Enum
     // const White = 'white';
     const White = '#ffffff';
 
-    protected $count = 0;
-
-    public function addCount()
-    {
-        $this->count++;
-
-        return $this;
-    }
-
-    public function getCount()
-    {
-        return $this->count;
-    }
-
-    public function setCount($count)
-    {
-        $this->count = $count;
-
-        return $this;
-    }
 }

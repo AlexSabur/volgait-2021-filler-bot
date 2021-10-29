@@ -3,6 +3,7 @@
 namespace App\Filler\Models;
 
 use App\Filler\Enums;
+use App\Filler\Enums\Color;
 use App\Filler\Exceptions\ColorNotAvailableExceprion;
 use App\Filler\Exceptions\PlayerCannotWalkExceprion;
 use Illuminate\Support\Arr;
@@ -89,6 +90,15 @@ class Game
             $colors,
             fn ($color) => $this->isNotBlockedColor($color),
         );
+    }
+
+    public function getBestColor(Enums\Player $player): Color
+    {
+        $colors = $this->getAvaibleColors($player);
+
+        $color = $this->field->getBestColored($colors);
+
+        return $color;
     }
 
     public function isNotBlockedColor(Enums\Color $color): bool

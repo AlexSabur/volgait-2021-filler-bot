@@ -11,12 +11,14 @@ class Api
      */
     protected $client;
 
-    public function __construct()
+    public function __construct($baseUrl = null)
     {
+        if (blank($baseUrl)) {
+            $baseUrl = config('app.api.base_uri');
+        }
+
         $this->client = Http::withOptions([
-            'base_uri' => config('app.api.base_uri'),
-            // 'timeout' => config('app.api.timeout'),
-            // 'debug' => true,
+            'base_uri' => $baseUrl,
         ]);
     }
 

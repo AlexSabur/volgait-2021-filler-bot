@@ -3,6 +3,8 @@
 namespace App\Filler\Models;
 
 use App\Filler\Enums;
+use App\Filler\Enums\Color;
+use Illuminate\Support\Arr;
 
 class Field
 {
@@ -13,11 +15,17 @@ class Field
      * @var Cell[]
      */
     protected array $cells = [];
+    protected array $cellsColored = [];
 
     public function __construct(int $height, int $width)
     {
         $this->height = $height;
         $this->width = $width;
+
+        $this->cellsColored = array_map(
+            fn () => [],
+            Color::asArray()
+        );
     }
 
     public static function import(array $import): Field
@@ -94,7 +102,6 @@ class Field
         $playerCells = $this->getCellsByPlayer($player);
         $colors = [];
 
-
         foreach ($playerCells as $cell) {
             foreach ($this->getNearCoors($cell->getPosition())  as $newCoords) {
                 [$x, $y] = $newCoords;
@@ -109,12 +116,9 @@ class Field
                     continue;
                 }
 
-
                 $color = $checkCell->getColor();
 
-                $count = $this->getZoneCount($checkCell);
-
-                $color->setCount($count);
+                $this->addColloredCell($checkCell, $this->getZoneByCell($checkCell));
 
                 foreach ($colors as $finnedColor) {
                     if ($color->is($finnedColor)) {
@@ -129,7 +133,38 @@ class Field
         return $colors;
     }
 
-    public function getZoneCount(Cell $cell)
+    public function addColloredCell(Cell $checkCell, $cells)
+    {
+        $this->cellsColored[$checkCell->getColor()->key] = array_uunique(
+            array_merge($this->cellsColored[$checkCell->getColor()->key], $cells),
+            function ($a, $b) {
+                // dump($a->getId() <=> $b->getId());
+                return $a->getId() <=> $b->getId();
+            }
+        );
+    }
+
+    public function getBestColored($colors)
+    {
+        $items = collect($this->cellsColored)
+            ->filter(function ($items, $key) use ($colors) {
+                foreach ($colors as $color) {
+                    if ($color->key === $key) {
+                        return true;
+                    }
+                }
+
+                return false;
+            })
+            ->sortByDesc(fn ($items) => count($items));
+
+        [$cell] = $items->first();
+
+        return $cell->getColor();
+    }
+
+
+    public function getZoneByCell(Cell $cell)
     {
         $zone = [$cell];
 
@@ -150,7 +185,7 @@ class Field
                 }
 
                 foreach ($zone as $zoneCell) {
-                    if ($zoneCell->getPosition() === $checkCell->getPosition()) {
+                    if ($zoneCell->getId() === $checkCell->getId()) {
                         continue 2;
                     }
                 }
@@ -159,7 +194,7 @@ class Field
             }
         }
 
-        return count($zone);
+        return $zone;
     }
 
     public function getNearCoors($coords)

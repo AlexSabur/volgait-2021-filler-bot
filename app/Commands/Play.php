@@ -69,7 +69,7 @@ class Play extends Command
 
                 $color = $game->getBestColor($player);
 
-                $this->info("step: {$player->value} {$color->key} ");
+                // $this->info("step: {$player->value} {$color->key} ");
 
                 $api->makeStep($gameId, $player->value, $color);
 

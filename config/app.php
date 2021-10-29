@@ -57,4 +57,8 @@ return [
         App\Providers\AppServiceProvider::class,
     ],
 
+    'api' => [
+        'base_uri' => 'http://volga-it-2021.ml/api/',
+        'timeout' => 2,
+    ],
 ];

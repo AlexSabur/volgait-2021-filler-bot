@@ -1,0 +1,16 @@
+version: "3.9"
+services:
+  cli:
+    build: cli
+    volumes:
+      - ..:/workspaces/laravel
+      - type: bind
+        source: ${HOME}${USERPROFILE}/.ssh
+        target: /home/${DEV_USER:-user}/.ssh
+
+  postgres:
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_DB: filler
+      POSTGRES_USER: root
+      POSTGRES_HOST_AUTH_METHOD: trust
